@@ -536,47 +536,52 @@ class CollectionPage extends StatelessWidget {
   }
 
   /// Bottom navigation dengan menu Koleksi aktif dan navigasi ke Telusuri.
-  Widget _buildBottomNavigation(BuildContext context) {
-    return Container(
-      color: const Color(0xFF1C1C1C),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              _buildNavItem(
-                icon: Icons.home_outlined,
-                label: 'Beranda',
-                isActive: false,
-              ),
-              _buildNavItem(
-                icon: Icons.fast_forward_outlined,
-                label: 'Sampel',
-                isActive: false,
-              ),
-              _buildNavItem(
-                icon: Icons.search,
-                label: 'Telusuri',
-                isActive: false,
-                onTap: () => _navigateToSearch(context),
-              ),
-              _buildNavItem(
-                icon: Icons.bookmark,
-                label: 'Koleksi',
-                isActive: true,
-              ),
-              _buildNavItem(
-                icon: Icons.play_circle_outline,
-                label: 'Upgrade',
-                isActive: false,
-              ),
-            ],
-          ),
+
+Widget _buildBottomNavigation(BuildContext context) {
+  return Container(
+    color: const Color(0xFF1C1C1C),
+    child: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            _buildNavItem(
+              icon: Icons.home_outlined,
+              label: 'Beranda',
+              isActive: false,
+              onTap: () => onTabSelected?.call(0),
+            ),
+            _buildNavItem(
+              icon: Icons.fast_forward_outlined,
+              label: 'Sampel',
+              isActive: false,
+              onTap: () => onTabSelected?.call(1),
+            ),
+            _buildNavItem(
+              icon: Icons.search,
+              label: 'Telusuri',
+              isActive: false,
+              onTap: () => _navigateToSearch(context),
+            ),
+            _buildNavItem(
+              icon: Icons.bookmark,
+              label: 'Koleksi',
+              isActive: true,
+            ),
+            _buildNavItem(
+              icon: Icons.play_circle_outline,
+              label: 'Upgrade',
+              isActive: false,
+              onTap: () => onTabSelected?.call(4),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   /// Satu item menu pada bottom navigation.
   Widget _buildNavItem({

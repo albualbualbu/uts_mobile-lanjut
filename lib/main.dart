@@ -1,11 +1,17 @@
+
 import 'package:flutter/material.dart';
-import 'pages/collection_page.dart';
+
+import 'pages/home_page.dart';
+import 'pages/sample_page.dart';
 import 'pages/search_page.dart';
+import 'pages/collection_page.dart';
+import 'pages/upgrade_page.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
+/// Root aplikasi musik.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -13,50 +19,44 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Aplikasi Musik',
+      title: 'Music App',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
       ),
-      home: const MainNavigationPage(),
+      home: const MainPage(),
     );
   }
 }
 
-/// Wrapper navigasi utama sementara untuk berpindah antara Telusuri dan Koleksi.
-/// Saat merge dengan halaman anggota lain (Beranda, Sampel, Upgrade),
-/// cukup tambahkan halaman tersebut ke daftar tab di sini.
-class MainNavigationPage extends StatefulWidget {
-  const MainNavigationPage({super.key});
+/// Pengelola navigasi utama untuk lima halaman aplikasi.
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
   @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MainNavigationPageState extends State<MainNavigationPage> {
-  // 2 = Telusuri, 3 = Koleksi.
-  int _currentTabIndex = 2;
+class _MainPageState extends State<MainPage> {
+  int _currentIndex = 0;
 
-  void _handleTabSelected(int tabIndex) {
-    if (tabIndex != 2 && tabIndex != 3) {
-      return;
-    }
-    if (_currentTabIndex == tabIndex) {
-      return;
-    }
+  void _onNavTap(int index) {
+    if (index < 0 || index > 4) return;
+
     setState(() {
-      _currentTabIndex = tabIndex;
+      _currentIndex = index;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final int stackIndex = _currentTabIndex == 3 ? 1 : 0;
-
     return IndexedStack(
-      index: stackIndex,
+      index: _currentIndex,
       children: [
-        SearchPage(onTabSelected: _handleTabSelected),
-        CollectionPage(onTabSelected: _handleTabSelected),
+        HomePage(onNavTap: _onNavTap),
+        SamplePage(onNavTap: _onNavTap),
+        SearchPage(onTabSelected: _onNavTap),
+        CollectionPage(onTabSelected: _onNavTap),
+        UpgradePage(onNavTap: _onNavTap),
       ],
     );
   }
