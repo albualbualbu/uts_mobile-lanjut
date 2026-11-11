@@ -326,4 +326,3 @@ class _AccountMenuItem {
     required this.title,
   });
 }
-

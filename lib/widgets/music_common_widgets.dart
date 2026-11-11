@@ -300,4 +300,3 @@ class _NavItemData {
     required this.label,
   });
 }
-
