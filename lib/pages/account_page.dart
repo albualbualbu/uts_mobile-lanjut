@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../widgets/music_common_widgets.dart';
 import 'upgrade_page.dart';
 
-/// Halaman menu akun pengguna (Akun) dengan tema gelap YouTube Music.
-/// Halaman ini menampilkan tampilan statis terpisah dari bottom navigation bar.
+// LOKASI: Halaman Menu Akun Pengguna (AccountPage)
 class AccountPage extends StatelessWidget {
   final VoidCallback? onCloseTap;
   final VoidCallback? onGetPremiumTap;
@@ -15,20 +14,19 @@ class AccountPage extends StatelessWidget {
     this.onGetPremiumTap,
   });
 
-  void _navigateToUpgrade(BuildContext context) {
+  // LOKASI: Akun - Fungsi Tutup Modal / Kembali ke Halaman Upgrade
+  void _closeOrNavigateToUpgrade(BuildContext context) {
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute<void>(
-          builder: (_) => const UpgradePage(),
-        ),
+        buildSlideUpRoute(const UpgradePage()),
       );
     }
   }
 
-  // Daftar menu utama sesuai urutan pada tampilan referensi Akun
+  // LOKASI: Akun - Daftar 8 Item Menu Utama Akun (Channel, Download, Histori, Recap, Badge, Ganti Akun, Setelan, Bantuan)
   static const List<_AccountMenuItem> _menuItems = [
     _AccountMenuItem(icon: Icons.account_box_outlined, title: 'Channel Anda'),
     _AccountMenuItem(icon: Icons.download_outlined, title: 'Download'),
@@ -52,6 +50,7 @@ class AccountPage extends StatelessWidget {
             child: Column(
               children: [
                 _buildHeader(context),
+                // LOKASI: Akun - Daftar Scroll Profil, Menu Akun, & Footer
                 Expanded(
                   child: LayoutBuilder(
                     builder: (context, constraints) {
@@ -67,7 +66,7 @@ class AccountPage extends StatelessWidget {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  _buildProfileSection(),
+                                  _buildProfileSection(context),
                                   const Divider(
                                     color: Color(0xFF2B2B2B),
                                     height: 1,
@@ -76,11 +75,11 @@ class AccountPage extends StatelessWidget {
                                   const SizedBox(height: 6),
                                   for (final _AccountMenuItem item
                                       in _menuItems)
-                                    _buildMenuItem(item),
+                                    _buildMenuItem(context, item),
                                   const SizedBox(height: 24),
                                 ],
                               ),
-                              _buildFooterInfo(),
+                              _buildFooterInfo(context),
                             ],
                           ),
                         ),
@@ -97,14 +96,15 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  /// Header dengan ikon X di kiri dan judul "Akun".
+  // LOKASI: Akun - Header Atas (Tombol Tutup X & Judul "Akun")
   Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 6, 16, 6),
       child: Row(
         children: [
+          // LOKASI: Akun - Tombol Tutup Halaman Akun (Ikon X)
           IconButton(
-            onPressed: onCloseTap ?? () => _navigateToUpgrade(context),
+            onPressed: onCloseTap ?? () => _closeOrNavigateToUpgrade(context),
             icon: const Icon(
               Icons.close,
               color: Colors.white,
@@ -129,65 +129,85 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  /// Bagian profil pengguna berisi avatar, nama, username, panah kanan, dan tautan biru.
-  Widget _buildProfileSection() {
+  // LOKASI: Akun - Bagian Profil Pengguna (Avatar, Trcy., @Tracy_07, Kelola Akun Google)
+  Widget _buildProfileSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // LOKASI: Akun - Avatar Profil Besar
           const UserProfileAvatar(size: 40),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Trcy.',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
+                // LOKASI: Akun - Baris Nama & Username (@Tracy_07)
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => showMusicFeedback(
+                    context,
+                    'Profil akun: Trcy. (@Tracy_07)',
+                  ),
+                  child: const Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Trcy.',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            '@Tracy_07',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
+                            SizedBox(height: 2),
+                            Text(
+                              '@Tracy_07',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right,
+                        color: Colors.white,
+                        size: 22,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                // LOKASI: Akun - Teks Biru "Kelola Akun Google Anda"
+                InkWell(
+                  borderRadius: BorderRadius.circular(6),
+                  onTap: () => showMusicFeedback(
+                    context,
+                    'Membuka pengelolaan Akun Google',
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      'Kelola Akun Google Anda',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF3EA6FF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.chevron_right,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Kelola Akun Google Anda',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color(0xFF3EA6FF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -198,10 +218,10 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  /// Satu baris item menu dengan ikon dan label teks.
-  Widget _buildMenuItem(_AccountMenuItem item) {
+  // LOKASI: Akun - Widget Baris Item Menu Akun (Ikon + Judul Menu)
+  Widget _buildMenuItem(BuildContext context, _AccountMenuItem item) {
     return InkWell(
-      onTap: () {},
+      onTap: () => showMusicFeedback(context, 'Membuka menu ${item.title}'),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         child: Row(
@@ -230,8 +250,8 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  /// Informasi kebijakan privasi, persyaratan layanan, dan ringkasan manfaat Music Premium.
-  Widget _buildFooterInfo() {
+  // LOKASI: Akun - Footer (Kebijakan Privasi, Persyaratan Layanan, & Info Manfaat Premium)
+  Widget _buildFooterInfo(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Column(
@@ -242,26 +262,44 @@ class AccountPage extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             spacing: 8,
             runSpacing: 4,
-            children: const [
-              Text(
-                'Kebijakan Privasi',
-                style: TextStyle(
-                  color: Color(0xFFAAAAAA),
-                  fontSize: 13,
+            children: [
+              // LOKASI: Akun - Tautan Kebijakan Privasi
+              InkWell(
+                borderRadius: BorderRadius.circular(4),
+                onTap: () =>
+                    showMusicFeedback(context, 'Membuka Kebijakan Privasi'),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  child: Text(
+                    'Kebijakan Privasi',
+                    style: TextStyle(
+                      color: Color(0xFFAAAAAA),
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
-              Text(
+              const Text(
                 '\u2022',
                 style: TextStyle(
                   color: Color(0xFFAAAAAA),
                   fontSize: 13,
                 ),
               ),
-              Text(
-                'Persyaratan Layanan',
-                style: TextStyle(
-                  color: Color(0xFFAAAAAA),
-                  fontSize: 13,
+              // LOKASI: Akun - Tautan Persyaratan Layanan
+              InkWell(
+                borderRadius: BorderRadius.circular(4),
+                onTap: () =>
+                    showMusicFeedback(context, 'Membuka Persyaratan Layanan'),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+                  child: Text(
+                    'Persyaratan Layanan',
+                    style: TextStyle(
+                      color: Color(0xFFAAAAAA),
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -280,7 +318,7 @@ class AccountPage extends StatelessWidget {
     );
   }
 
-  /// Tombol merah besar di bagian paling bawah untuk penawaran Music Premium.
+  // LOKASI: Akun - Tombol Merah Bawah ("Dapatkan Music Premium" Menuju Tab Upgrade)
   Widget _buildGetPremiumButton(BuildContext context) {
     return Container(
       color: Colors.black,
@@ -290,7 +328,8 @@ class AccountPage extends StatelessWidget {
           width: double.infinity,
           height: 50,
           child: ElevatedButton(
-            onPressed: onGetPremiumTap ?? () => _navigateToUpgrade(context),
+            onPressed:
+                onGetPremiumTap ?? () => _closeOrNavigateToUpgrade(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFE60000),
               foregroundColor: Colors.white,
@@ -316,7 +355,7 @@ class AccountPage extends StatelessWidget {
   }
 }
 
-/// Model data sederhana untuk satu baris menu pada halaman Akun.
+// LOKASI: Akun - Model Data Item Menu Akun (_AccountMenuItem)
 class _AccountMenuItem {
   final IconData icon;
   final String title;
