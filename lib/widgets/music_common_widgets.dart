@@ -2,7 +2,144 @@ import 'package:flutter/material.dart';
 
 import '../data/image_urls.dart';
 
-/// Logo ikon dan teks branding YouTube Music dengan fallback jika gambar gagal dimuat.
+// LOKASI: Helper Transisi Halaman Modal Slide-Up (Untuk Halaman Akun)
+Route<void> buildSlideUpRoute(Widget page) {
+  return PageRouteBuilder<void>(
+    transitionDuration: const Duration(milliseconds: 240),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final Animation<Offset> slide = Tween<Offset>(
+        begin: const Offset(0, 0.08),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+      );
+      return FadeTransition(
+        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: SlideTransition(position: slide, child: child),
+      );
+    },
+  );
+}
+
+// LOKASI: Helper Umpan Balik SnackBar Gelap Saat Tombol Ditekan (showMusicFeedback)
+void showMusicFeedback(BuildContext context, String message) {
+  final ScaffoldMessengerState? messenger = ScaffoldMessenger.maybeOf(context);
+  if (messenger == null) return;
+
+  messenger
+    ..hideCurrentSnackBar()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white, fontSize: 13.5),
+        ),
+        backgroundColor: const Color(0xFF282828),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(milliseconds: 1500),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+}
+
+// LOKASI: Helper Bottom Sheet Menu Opsi Tiga Titik Lagu/Artis (showTrackOptionsSheet)
+void showTrackOptionsSheet(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: const Color(0xFF1C1C1C),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (sheetContext) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // LOKASI: Garis Handle Atas Bottom Sheet
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // LOKASI: Judul & Subjudul Lagu pada Menu Tiga Titik
+              ListTile(
+                title: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                subtitle: Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white60),
+                ),
+              ),
+              const Divider(color: Color(0xFF2E2E2E), height: 1),
+              // LOKASI: Opsi Menu - Putar Berikutnya
+              ListTile(
+                leading: const Icon(Icons.playlist_play, color: Colors.white),
+                title: const Text(
+                  'Putar berikutnya',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  showMusicFeedback(context, 'Ditambahkan ke antrean: $title');
+                },
+              ),
+              // LOKASI: Opsi Menu - Simpan ke Playlist
+              ListTile(
+                leading: const Icon(Icons.playlist_add, color: Colors.white),
+                title: const Text(
+                  'Simpan ke playlist',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  showMusicFeedback(context, 'Disimpan ke koleksi: $title');
+                },
+              ),
+              // LOKASI: Opsi Menu - Bagikan
+              ListTile(
+                leading: const Icon(Icons.share_outlined, color: Colors.white),
+                title: const Text(
+                  'Bagikan',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  showMusicFeedback(context, 'Membagikan "$title"');
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+// LOKASI: Widget Logo YouTube Music + Teks (YouTubeMusicLogo)
 class YouTubeMusicLogo extends StatelessWidget {
   final double iconSize;
   final String label;
@@ -22,6 +159,7 @@ class YouTubeMusicLogo extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // LOKASI: Gambar Logo Bulat Aplikasi & Placeholder Error
         ClipOval(
           child: Image.network(
             ImageUrls.logo,
@@ -46,6 +184,7 @@ class YouTubeMusicLogo extends StatelessWidget {
           ),
         ),
         SizedBox(width: spacing),
+        // LOKASI: Teks Nama Brand Aplikasi ("Music" / "YouTube Music")
         Flexible(
           child: Text(
             label,
@@ -64,7 +203,7 @@ class YouTubeMusicLogo extends StatelessWidget {
   }
 }
 
-/// Avatar profil pengguna berbentuk lingkaran dengan fallback ikon bawaan.
+// LOKASI: Widget Avatar Foto Profil Lingkaran (UserProfileAvatar)
 class UserProfileAvatar extends StatelessWidget {
   final double size;
 
@@ -100,100 +239,148 @@ class UserProfileAvatar extends StatelessWidget {
   }
 }
 
-/// Mini-player statis di bagian bawah halaman yang menampilkan lagu sedang diputar.
+// LOKASI: Widget Mini Player Bawah Aplikasi (MusicMiniPlayer)
 class MusicMiniPlayer extends StatelessWidget {
-  const MusicMiniPlayer({super.key});
+  final String title;
+  final String artist;
+  final String coverUrl;
+  final bool isPlaying;
+  final VoidCallback? onPlayPauseTap;
+  final VoidCallback? onCastTap;
+  final VoidCallback? onTap;
+
+  const MusicMiniPlayer({
+    super.key,
+    this.title = 'Kenangan Manis',
+    this.artist = 'Pamungkas',
+    this.coverUrl = ImageUrls.miniPlayerCover,
+    this.isPlaying = false,
+    this.onPlayPauseTap,
+    this.onCastTap,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       color: const Color(0xFF212121),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    color: const Color(0xFF2F2F2F),
-                    child: Image.network(
-                      ImageUrls.miniPlayerCover,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Icon(
-                            Icons.music_note,
-                            color: Colors.white54,
-                            size: 24,
-                          ),
-                        );
-                      },
+      child: InkWell(
+        onTap: onTap ??
+            () => showMusicFeedback(
+                  context,
+                  'Sedang diputar: $title - $artist',
+                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: Row(
+                children: [
+                  // LOKASI: Mini Player - Cover Album Lagu
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      color: const Color(0xFF2F2F2F),
+                      child: Image.network(
+                        coverUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(
+                              Icons.music_note,
+                              color: Colors.white54,
+                              size: 24,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Kenangan Manis',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  // LOKASI: Mini Player - Judul Lagu & Nama Penyanyi
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Pamungkas',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Color(0xFFB3B3B3),
-                          fontSize: 13,
+                        const SizedBox(height: 2),
+                        Text(
+                          artist,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFFB3B3B3),
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.cast,
-                    color: Colors.white,
-                    size: 22,
+                  // LOKASI: Mini Player - Tombol Cast Perangkat
+                  IconButton(
+                    onPressed: onCastTap ??
+                        () => showMusicFeedback(
+                              context,
+                              'Mencari perangkat Cast...',
+                            ),
+                    icon: const Icon(
+                      Icons.cast,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.play_arrow,
-                    color: Colors.white,
-                    size: 28,
+                  // LOKASI: Mini Player - Tombol Play / Pause
+                  IconButton(
+                    onPressed: onPlayPauseTap ??
+                        () => showMusicFeedback(
+                              context,
+                              isPlaying ? 'Pemutaran dijeda' : 'Memutar $title',
+                            ),
+                    icon: Icon(
+                      isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Container(
-            height: 1,
-            color: const Color(0xFF2E2E2E),
-          ),
-        ],
+            // LOKASI: Mini Player - Garis Progres Tipis Bawah
+            SizedBox(
+              height: 2,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: isPlaying ? 5 : 3,
+                    child: Container(color: Colors.white70),
+                  ),
+                  Expanded(
+                    flex: isPlaying ? 5 : 7,
+                    child: Container(color: Colors.white24),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// Bottom navigation bar yang konsisten dengan tema gelap YouTube Music.
+// LOKASI: Widget Bottom Navigation Bar Utama (MusicBottomNavBar)
 class MusicBottomNavBar extends StatelessWidget {
   final int? activeIndex;
   final ValueChanged<int>? onTap;
@@ -206,6 +393,7 @@ class MusicBottomNavBar extends StatelessWidget {
     this.backgroundColor = const Color(0xFF141414),
   });
 
+  // LOKASI: Daftar 5 Menu Bottom Navigation (Beranda, Sampel, Telusuri, Koleksi, Upgrade)
   static const List<_NavItemData> _navItems = [
     _NavItemData(
       icon: Icons.home_outlined,
@@ -236,51 +424,56 @@ class MusicBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
       color: backgroundColor,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: List.generate(_navItems.length, (index) {
-              final _NavItemData item = _navItems[index];
-              final bool isActive = activeIndex == index;
-              final Color itemColor =
-                  isActive ? Colors.white : const Color(0xFFC4C4C4);
+      child: Material(
+        color: Colors.transparent,
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Row(
+              children: List.generate(_navItems.length, (index) {
+                final _NavItemData item = _navItems[index];
+                final bool isActive = activeIndex == index;
+                final Color itemColor =
+                    isActive ? Colors.white : const Color(0xFFC4C4C4);
 
-              return Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: onTap == null ? null : () => onTap!(index),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isActive ? item.activeIcon : item.icon,
-                          color: itemColor,
-                          size: 24,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          item.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
+                // LOKASI: Item Tombol Menu Bottom Navigation (Ikon & Label)
+                return Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: onTap == null ? null : () => onTap!(index),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isActive ? item.activeIcon : item.icon,
                             color: itemColor,
-                            fontSize: 11,
-                            fontWeight:
-                                isActive ? FontWeight.w600 : FontWeight.w400,
+                            size: 24,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            item.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: itemColor,
+                              fontSize: 11,
+                              fontWeight:
+                                  isActive ? FontWeight.w600 : FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
       ),
@@ -288,7 +481,7 @@ class MusicBottomNavBar extends StatelessWidget {
   }
 }
 
-/// Model sederhana untuk item menu pada bottom navigation.
+// LOKASI: Model Data Item Menu Bottom Navigation (_NavItemData)
 class _NavItemData {
   final IconData icon;
   final IconData activeIcon;
